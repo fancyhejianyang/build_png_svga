@@ -26,7 +26,7 @@ class FinalSVGAEncoder:
         movie.params.viewBoxWidth = float(width)
         movie.params.viewBoxHeight = float(height)
         movie.params.fps = self._validate_fps(fps)
-        movie.params.frames = 60  # 与官方 demo 保持一致
+        movie.params.frames = frame_count  # 使用实际选中的帧数
         
         # 只添加第一帧图像以减小文件大小
         first_key, first_data = frames_data[0]
@@ -71,13 +71,27 @@ class FinalSVGAEncoder:
         """
         创建多帧 SVGA（限制帧数以控制文件大小）
         """
-        width, height = frame_size
+        # 使用原始图像尺寸作为 viewBox，而不是压缩后的尺寸
+        from PIL import Image
+        import io
         
-        # 选择关键帧
+        # 获取第一张图片的原始尺寸
+        first_image_data = frames_data[0][1]
+        with Image.open(io.BytesIO(first_image_data)) as img:
+            original_width, original_height = img.size
+        
+        width, height = original_width, original_height
+        
+        # 选择关键帧 - 确保包含最后一帧
         total_frames = len(frames_data)
         if total_frames > max_frames:
-            step = total_frames // max_frames
-            selected_frames = frames_data[::step][:max_frames]
+            # 使用更均匀的分布，确保包含最后一帧
+            indices = []
+            for i in range(max_frames - 1):
+                idx = int(i * (total_frames - 1) / (max_frames - 1))
+                indices.append(idx)
+            indices.append(total_frames - 1)  # 确保包含最后一帧
+            selected_frames = [frames_data[i] for i in indices]
         else:
             selected_frames = frames_data
         
@@ -91,7 +105,7 @@ class FinalSVGAEncoder:
         movie.params.viewBoxWidth = float(width)
         movie.params.viewBoxHeight = float(height)
         movie.params.fps = self._validate_fps(fps)
-        movie.params.frames = 60  # 与官方 demo 保持一致
+        movie.params.frames = frame_count  # 使用实际选中的帧数
         
         # 添加所有选中的图像
         for frame_key, frame_data in selected_frames:
@@ -155,8 +169,8 @@ class FinalSVGAEncoder:
                 # 记录原始尺寸
                 original_width, original_height = img.size
                 
-                # 调整尺寸（如果太大）- 为60帧优化
-                max_size = 256  # 减小尺寸以支持更多帧
+                # 适度压缩以保持质量和性能平衡
+                max_size = 1080  # 提高到1080p以保持更好的显示效果
                 if img.width > max_size or img.height > max_size:
                     img.thumbnail((max_size, max_size), Image.Resampling.LANCZOS)
                 
