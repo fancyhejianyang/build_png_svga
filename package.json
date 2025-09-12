@@ -1,0 +1,22 @@
+{
+    "name": "build-svga",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+      "start": "node index.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "description": "MP4 to SVGA Converter",
+    "dependencies": {
+      "@ffmpeg-installer/ffmpeg": "^1.1.0",
+      "cors": "^2.8.5",
+      "express": "^5.1.0",
+      "fluent-ffmpeg": "^2.1.3",
+      "multer": "^2.0.2",
+      "png-js": "^1.0.0",
+      "protobufjs": "^6.11.3",
+      "sharp": "^0.34.3"
+    }
+  }
+  
